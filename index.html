@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b4f8a">
+<link rel="manifest" href="fiera-manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fiera A2A">
+<title>Postazione Fiera</title>
+<style>
+:root{--blu:#0b4f8a;--blus:#073860;--bluc:#e7f1fa;--verde:#1d7a3f;--verdec:#e3f4e9;--ambra:#9a5b00;--ambrac:#fdf1de;--rosso:#a3231c;--grigio:#5b6470;--bordo:#c8d2dc;--bg:#f4f7fa;--testo:#1a222b}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--testo);font-size:17px;line-height:1.45;-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom)}
+.skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:#fff;color:var(--blu);padding:10px;z-index:100;border-radius:8px}
+header{background:var(--blu);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+header h1{margin:0;font-size:1.15rem}header .s{font-size:.82rem;opacity:.92}
+main{padding:16px;max-width:680px;margin:0 auto}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 18px;border-radius:14px;font-size:1rem;font-weight:700;border:2px solid transparent;cursor:pointer;width:100%;text-decoration:none;font-family:inherit}
+.bp{background:var(--blu);color:#fff}.bp:active{background:var(--blus)}.bs{background:#fff;color:var(--blu);border-color:var(--blu)}.bg{background:transparent;color:var(--blu);border-color:var(--bordo)}.bd{background:#fff;color:var(--rosso);border-color:var(--rosso)}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #ffb300;outline-offset:2px}
+.card{background:#fff;border:1px solid var(--bordo);border-radius:14px;padding:18px;margin-bottom:18px}
+fieldset{border:none;margin:0 0 16px;padding:0}legend{font-weight:700;margin-bottom:6px;display:block}
+.hint{font-size:.85rem;color:var(--grigio);margin:2px 0 10px}
+textarea,input[type=text],input[type=date]{width:100%;min-height:48px;padding:12px 14px;font-size:1rem;border:2px solid var(--bordo);border-radius:10px;background:#fff;color:var(--testo);font-family:inherit}
+textarea{min-height:90px;resize:vertical}.colpita textarea{border-color:var(--blu);background:var(--bluc)}
+.fa{display:flex;gap:10px;flex-wrap:wrap}.fa .btn{flex:1 1 46%}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.ant{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.ant img{width:82px;height:82px;object-fit:cover;border-radius:10px;border:2px solid var(--bordo)}
+.prio{display:flex;gap:8px}.prio label{flex:1;text-align:center;border:2px solid var(--bordo);border-radius:10px;padding:12px 4px;font-weight:700;min-height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.prio input{position:absolute;opacity:0}.prio label:has(input:checked){border-color:var(--blu);background:var(--bluc);color:var(--blus)}
+.gdpr{display:flex;gap:12px;align-items:flex-start;background:var(--bluc);border-radius:10px;padding:12px}.gdpr input{width:24px;height:24px;flex:none;margin-top:2px}.gdpr label{font-size:.9rem}
+.due{display:flex;gap:12px;flex-wrap:wrap}.due>div{flex:1 1 46%;min-width:140px}.due label{font-weight:700;display:block;margin-bottom:6px}
+.st{display:flex;align-items:center;gap:10px;margin:8px 0 12px;font-size:1.05rem;font-weight:800}
+.bc{background:var(--blu);color:#fff;border-radius:999px;font-size:.78rem;padding:2px 9px}
+.vuoto{background:#fff;border:1px dashed var(--bordo);border-radius:14px;padding:22px;text-align:center;color:var(--grigio)}
+/* schede compatte espandibili */
+.sch{background:#fff;border:1px solid var(--bordo);border-left:6px solid var(--grigio);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.sch.lav{border-left-color:var(--ambra)}.sch.fat{border-left-color:var(--verde)}.sch.arc{border-left-color:var(--grigio);opacity:.9}
+.sch>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;gap:10px;justify-content:space-between;min-height:56px}
+.sch>summary::-webkit-details-marker{display:none}
+.sumL{min-width:0}.sumL h3{margin:0;font-size:1.02rem;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.az{color:var(--grigio);font-size:.85rem;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.sumR{display:flex;align-items:center;gap:8px;flex:none}
+.chev{color:var(--grigio);transition:transform .2s}.sch[open] .chev{transform:rotate(180deg)}
+.tag{display:inline-block;font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:999px}
+.t-alta{background:#f7dcda;color:var(--rosso)}.t-media{background:var(--ambrac);color:var(--ambra)}.t-bassa{background:var(--bluc);color:var(--blu)}
+.chip{font-size:.72rem;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.c-att{background:var(--ambrac);color:var(--ambra)}.c-pronta{background:var(--bluc);color:var(--blu)}.c-inv{background:var(--verdec);color:var(--verde)}.c-arc{background:#eef1f4;color:var(--grigio)}
+.body{padding:0 16px 16px;border-top:1px solid var(--bordo)}
+.es{background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.9rem}.es h4{margin:0 0 4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.4px;color:var(--grigio)}
+.cbox{background:var(--bluc);border-left:3px solid var(--blu)}.nbox{background:#fffbe9;border-left:3px solid var(--ambra)}
+.ep{white-space:pre-wrap;background:#fff;border:1px solid var(--bordo);border-radius:10px;padding:12px;font-size:.88rem}
+.bcc{font-size:.8rem;color:var(--grigio);margin-top:6px}
+.sa{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}.sa .btn{flex:1 1 30%;min-height:44px;font-size:.9rem;padding:10px}
+.fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 18px);width:62px;height:62px;border-radius:50%;background:var(--blu);color:#fff;border:none;font-size:2rem;box-shadow:0 6px 18px rgba(11,79,138,.5);z-index:30;cursor:pointer}.fab:active{background:var(--blus)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:var(--blus);color:#fff;padding:12px 18px;border-radius:10px;font-size:.92rem;z-index:40;opacity:0;transition:opacity .25s;max-width:90%;text-align:center}.toast.show{opacity:1}
+.hidden{display:none !important}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.nt{font-size:.8rem;color:var(--grigio);margin-top:16px;padding:12px;background:#fff;border:1px dashed var(--bordo);border-radius:10px}
+details.arcsez>summary{cursor:pointer;font-weight:800;font-size:1.05rem;margin-top:22px;list-style:none;display:flex;align-items:center;gap:10px;min-height:44px}
+details.arcsez>summary::-webkit-details-marker{display:none}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Salta al contenuto</a>
+<header><h1>Postazione Fiera</h1><div class="s">AccessibilityToAll &middot; acquisizione contatti</div></header>
+<main id="main">
+
+<section id="vform" aria-labelledby="hform">
+<h2 id="hform" class="st">Nuovo contatto</h2>
+<form id="form" class="card" novalidate>
+<fieldset><legend>Foto del biglietto o volantino</legend><p class="hint">Scatta una foto o scegline una dalla galleria. Puoi aggiungerne pi&ugrave; di una.</p>
+<div class="fa"><label class="btn bp" for="scatto">&#128247; Scatta foto<input type="file" id="scatto" accept="image/*" capture="environment" multiple></label>
+<label class="btn bs" for="gal">&#128444;&#65039; Dalla galleria<input type="file" id="gal" accept="image/*" multiple></label></div>
+<div class="ant" id="ant" aria-live="polite"></div></fieldset>
+<fieldset class="colpita"><legend><label for="colpita">Cosa mi ha colpita</label></legend><p class="hint">Finisce nella parte personale dell'email di follow-up.</p>
+<textarea id="colpita" placeholder="Cosa ti ha colpita della chiacchierata..."></textarea></fieldset>
+<fieldset><legend><label for="note">Note private</label></legend><p class="hint">Restano solo per te. Non finiscono nell'email.</p>
+<textarea id="note" placeholder="Promemoria personali..."></textarea></fieldset>
+<fieldset><legend>Priorit&agrave;</legend><div class="prio" role="radiogroup" aria-label="Priorit&agrave;">
+<label><input type="radio" name="prio" value="alta">Alta</label>
+<label><input type="radio" name="prio" value="media" checked>Media</label>
+<label><input type="radio" name="prio" value="bassa">Bassa</label></div></fieldset>
+<fieldset><legend>Evento</legend><div class="due">
+<div><label for="fiera">Nome fiera</label><input type="text" id="fiera" placeholder="Es. Fiera Accessibilit&agrave; 2026"></div>
+<div><label for="data">Data</label><input type="date" id="data"></div></div></fieldset>
+<fieldset><div class="gdpr"><input type="checkbox" id="gdpr"><label for="gdpr">Il contatto acconsente al trattamento dei dati per essere ricontattato (GDPR).</label></div></fieldset>
+<button type="submit" class="btn bp">Salva e avvia lavorazione</button>
+</form>
+<button type="button" class="btn bg" id="gob">Vedi le schede in bacheca</button>
+<p class="nt">Prototipo dimostrativo. La lavorazione (estrazione, audit, email) &egrave; simulata con esiti d'esempio. Le email non vengono realmente inviate. I dati restano su questo dispositivo.</p>
+</section>
+
+<section id="vbac" class="hidden" aria-labelledby="hbac">
+<h2 id="hbac" class="sr">Bacheca schede</h2>
+<div class="st">In lavorazione <span class="bc" id="cl">0</span></div><div id="ll"></div>
+<div class="st" style="margin-top:22px">Completate <span class="bc" id="cf">0</span></div><div id="lf"></div>
+<details class="arcsez" id="arcsez"><summary>Archiviate <span class="bc" id="ca">0</span></summary><div id="la"></div></details>
+</section>
+
+</main>
+<button type="button" class="fab hidden" id="fab" aria-label="Nuovo contatto">+</button>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+var KEY="fiera_v2",MIO_BCC="accessibilitytoall@gmail.com",schede=[],foto=[],NL=String.fromCharCode(10);
+var NOMI=["Marco Rossi","Giulia Bianchi","Luca Verdi","Sara Conti","Paolo Neri","Elena Gallo"];
+var AZ=["Studio Ferri","Hotel Aurora","Comune di Lecco","Bottega Sana","Museo Civico","TechSmart srl"];
+var SITI=["studioferri.it","hotelaurora.com","comune.lecco.it","bottegasana.it","museocivico.it","techsmart.io"];
+var EM=["info@studioferri.it","booking@hotelaurora.com","urp@comune.lecco.it","ciao@bottegasana.it","info@museocivico.it","hello@techsmart.io"];
+function g(id){return document.getElementById(id)}
+function load(){try{schede=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){schede=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(schede))}catch(e){}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function pick(a,i){return a[i%a.length]}
+function esc(t){t=String(t);t=t.split("&").join("&amp;");t=t.split("<").join("&lt;");t=t.split(">").join("&gt;");t=t.split(String.fromCharCode(34)).join("&quot;");return t}
+function toast(m){var t=g("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("show")},2400)}
+function addFoto(files){Array.prototype.forEach.call(files,function(f){if(!f.type||f.type.indexOf("image")!==0)return;var r=new FileReader();r.onload=function(e){foto.push(e.target.result);rant()};r.readAsDataURL(f)})}
+function rant(){var b=g("ant");b.innerHTML="";foto.forEach(function(s,i){var fig=document.createElement("figure");fig.style.margin="0";fig.innerHTML='<img src="'+s+'" alt="Anteprima foto '+(i+1)+'">';b.appendChild(fig)})}
+g("scatto").addEventListener("change",function(e){addFoto(e.target.files);e.target.value=""});
+g("gal").addEventListener("change",function(e){addFoto(e.target.files);e.target.value=""});
+g("form").addEventListener("submit",function(e){e.preventDefault();
+var prio=(document.querySelector('input[name=prio]:checked')||{}).value||"media";var n=schede.length;
+var s={id:uid(),stato:"coda",arch:false,foto:foto.slice(),colpita:g("colpita").value.trim(),note:g("note").value.trim(),prio:prio,fiera:g("fiera").value.trim()||"Fiera",data:g("data").value||new Date().toISOString().slice(0,10),gdpr:g("gdpr").checked,nome:pick(NOMI,n),azienda:pick(AZ,n),sito:pick(SITI,n),email:pick(EM,n),audit:null,bozza:null};
+schede.unshift(s);save();foto=[];rant();e.target.reset();bac();elabora(s.id);toast("Scheda salvata")});
+// elaborazione simulata senza animazione: dopo poco la scheda e' pronta
+function elabora(id){setTimeout(function(){var s=trova(id);if(!s)return;var p=[78,64,82,55,70,88][schede.indexOf(s)%6];s.audit={p:p,n:(p<70?3:2)};s.bozza=mail(s);s.stato="email";save();rbac()},800)}
+function mail(s){var c=s.colpita?s.colpita:"il piacere di conoscerla allo stand";
+return "Oggetto: Dopo "+s.fiera+" - un pensiero per "+s.azienda+NL+NL+"Gentile "+s.nome+","+NL+NL+"le scrivo a seguito del nostro incontro a "+s.fiera+". Mi ha colpita "+c.charAt(0).toLowerCase()+c.slice(1)+"."+NL+NL+"Dando un'occhiata a "+s.sito+" ho notato alcune opportunità per rendere il sito più accessibile"+(s.audit?" (punteggio attuale "+s.audit.p+"/100)":"")+", un tema su cui in AccessibilityToAll lavoriamo ogni giorno."+NL+NL+"Le va di sentirci per una breve chiamata?"+NL+NL+"Un caro saluto,"+NL+"Beatrice Biasuzzi - AccessibilityToAll"}
+function trova(id){for(var i=0;i<schede.length;i++)if(schede[i].id===id)return schede[i];return null}
+function chip(s){if(s.arch)return '<span class="chip c-arc">Archiviata</span>';if(s.stato==="inviata")return '<span class="chip c-inv">Inviata</span>';if(s.stato==="email")return '<span class="chip c-pronta">Email pronta</span>';return '<span class="chip c-att">In elaborazione</span>'}
+function rsch(s){
+var cls=s.arch?"arc":(s.stato==="inviata"?"fat":"lav");
+var pt={alta:"Alta",media:"Media",bassa:"Bassa"}[s.prio];
+var h='<details class="sch '+cls+'" data-id="'+s.id+'"><summary><div class="sumL"><h3>'+esc(s.nome)+' <span class="tag t-'+s.prio+'">'+pt+'</span></h3><div class="az">'+esc(s.azienda)+' &middot; '+esc(s.fiera)+'</div></div><div class="sumR">'+chip(s)+'<span class="chev" aria-hidden="true">&#9662;</span></div></summary><div class="body">';
+if(s.foto&&s.foto.length){h+='<div class="ant">';s.foto.forEach(function(src,i){h+='<figure style="margin:0"><img src="'+src+'" alt="Foto biglietto '+(i+1)+'"></figure>'});h+='</div>'}
+if(s.stato==="email"||s.stato==="inviata"){h+='<div class="es"><h4>Contatto estratto</h4>'+esc(s.nome)+' &middot; '+esc(s.email)+' &middot; '+esc(s.sito)+'</div>'}
+if(s.audit){h+='<div class="es"><h4>Audit sito</h4>Punteggio '+s.audit.p+'/100 &middot; '+s.audit.n+' opportunità di miglioramento</div>'}
+if(s.colpita){h+='<div class="es cbox"><h4>Mi ha colpita</h4>'+esc(s.colpita)+'</div>'}
+if(s.note){h+='<div class="es nbox"><h4>Note private (solo per me)</h4>'+esc(s.note)+'</div>'}
+if(s.bozza){h+='<div class="es"><h4>'+(s.stato==="inviata"?"Email inviata":"Email pronta")+'</h4><div class="ep">'+esc(s.bozza)+'</div><div class="bcc">Copia nascosta a te (BCC): '+esc(MIO_BCC)+'</div></div>'}
+h+='<div class="sa">';
+if(s.arch){h+='<button type="button" class="btn bs" data-act="rip" data-id="'+s.id+'">Ripristina</button><button type="button" class="btn bd" data-act="del" data-id="'+s.id+'">Elimina</button>'}
+else{if(s.stato==="email")h+='<button type="button" class="btn bp" data-act="inv" data-id="'+s.id+'">Invia email</button>';h+='<button type="button" class="btn bg" data-act="arc" data-id="'+s.id+'">Archivia</button><button type="button" class="btn bd" data-act="del" data-id="'+s.id+'">Elimina</button>'}
+h+='</div></div></details>';
+return h}
+function rbac(){
+var lav=schede.filter(function(s){return !s.arch&&s.stato!=="inviata"});
+var fat=schede.filter(function(s){return !s.arch&&s.stato==="inviata"});
+var arc=schede.filter(function(s){return s.arch});
+g("cl").textContent=lav.length;g("cf").textContent=fat.length;g("ca").textContent=arc.length;
+g("ll").innerHTML=lav.length?lav.map(rsch).join(""):'<div class="vuoto">Nessuna scheda in lavorazione. Tocca + per aggiungerne una.</div>';
+g("lf").innerHTML=fat.length?fat.map(rsch).join(""):'<div class="vuoto">Ancora nessuna scheda completata.</div>';
+g("la").innerHTML=arc.length?arc.map(rsch).join(""):'<div class="vuoto">Nessuna scheda archiviata.</div>';
+document.querySelectorAll("[data-act]").forEach(function(b){b.addEventListener("click",function(ev){ev.preventDefault();ev.stopPropagation();azione(b.getAttribute("data-act"),b.getAttribute("data-id"))})});
+}
+function azione(act,id){var s=trova(id);if(!s)return;
+if(act==="inv"){s.stato="inviata";save();rbac();toast("Email inviata (simulata) + copia a te")}
+else if(act==="arc"){s.arch=true;save();rbac();toast("Scheda archiviata")}
+else if(act==="rip"){s.arch=false;save();rbac();toast("Scheda ripristinata")}
+else if(act==="del"){schede=schede.filter(function(x){return x.id!==id});save();rbac();toast("Scheda eliminata")}}
+function bac(){g("vform").classList.add("hidden");g("vbac").classList.remove("hidden");g("fab").classList.remove("hidden");rbac();window.scrollTo(0,0)}
+function frm(){g("vbac").classList.add("hidden");g("vform").classList.remove("hidden");g("fab").classList.add("hidden");window.scrollTo(0,0)}
+g("gob").addEventListener("click",bac);g("fab").addEventListener("click",frm);
+load();g("data").value=new Date().toISOString().slice(0,10);if(schede.length){bac()}
+})();
+</script>
+</body>
+</html>
