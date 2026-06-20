@@ -156,6 +156,7 @@ function elabora(id){setTimeout(function(){var s=trova(id);if(!s)return;var p=[7
 function mailSubj(s){return "Dopo "+s.fiera+" - un pensiero per "+s.azienda}
 function mailBody(s){var c=s.colpita?s.colpita:"il piacere di conoscerla allo stand";
 return "Gentile "+s.nome+","+NL+NL+"le scrivo a seguito del nostro incontro a "+s.fiera+". Mi ha colpita "+c.charAt(0).toLowerCase()+c.slice(1)+"."+NL+NL+"Dando un'occhiata a "+s.sito+" ho notato alcune opportunità per rendere il sito più accessibile"+(s.audit?" (punteggio attuale "+s.audit.p+"/100)":"")+", un tema su cui in AccessibilityToAll lavoriamo ogni giorno."+NL+NL+"Le va di sentirci per una breve chiamata?"+NL+NL+"Un caro saluto,"+NL+"Beatrice Biasuzzi - AccessibilityToAll"}
+function mailto(s){var to=s.emailc||s.email;return ("mailto:"+encodeURIComponent(to)+"?bcc="+encodeURIComponent(MIO_BCC)+"&subject="+encodeURIComponent(mailSubj(s))+"&body="+encodeURIComponent(mailBody(s))).split("&").join("&amp;")}
 function trova(id){for(var i=0;i<schede.length;i++)if(schede[i].id===id)return schede[i];return null}
 function chip(s){if(s.arch)return '<span class="chip c-arc">Archiviata</span>';if(s.stato==="inviata")return '<span class="chip c-inv">Inviata</span>';if(s.stato==="email")return '<span class="chip c-pronta">Email pronta</span>';return '<span class="chip c-att">In elaborazione</span>'}
 function rsch(s){
@@ -170,7 +171,7 @@ if(s.note){h+='<div class="es nbox"><h4>Note private (solo per me)</h4>'+esc(s.n
 if(s.bozza){h+='<div class="es"><h4>'+(s.stato==="inviata"?"Email inviata":"Email pronta")+'</h4><div class="ep">'+esc(s.bozza)+'</div><div class="bcc">Copia nascosta a te (BCC): '+esc(MIO_BCC)+'</div></div>'}
 h+='<div class="sa">';
 if(s.arch){h+='<button type="button" class="btn bs" data-act="rip" data-id="'+s.id+'">Ripristina</button><button type="button" class="btn bd" data-act="del" data-id="'+s.id+'">Elimina</button>'}
-else{if(s.stato==="email")h+='<button type="button" class="btn bp" data-act="inv" data-id="'+s.id+'">Invia (apri Mail)</button>';h+='<button type="button" class="btn bg" data-act="arc" data-id="'+s.id+'">Archivia</button><button type="button" class="btn bd" data-act="del" data-id="'+s.id+'">Elimina</button>'}
+else{if(s.stato==="email")h+='<a class="btn bp" data-act="inv" data-id="'+s.id+'" href="'+mailto(s)+'">Invia (apri Mail)</a>';h+='<button type="button" class="btn bg" data-act="arc" data-id="'+s.id+'">Archivia</button><button type="button" class="btn bd" data-act="del" data-id="'+s.id+'">Elimina</button>'}
 h+='</div></div></details>';
 return h}
 function rbac(){
@@ -181,17 +182,16 @@ g("cl").textContent=lav.length;g("cf").textContent=fat.length;g("ca").textConten
 g("ll").innerHTML=lav.length?lav.map(rsch).join(""):'<div class="vuoto">Nessuna scheda in lavorazione. Tocca + per aggiungerne una.</div>';
 g("lf").innerHTML=fat.length?fat.map(rsch).join(""):'<div class="vuoto">Ancora nessuna scheda completata.</div>';
 g("la").innerHTML=arc.length?arc.map(rsch).join(""):'<div class="vuoto">Nessuna scheda archiviata.</div>';
-document.querySelectorAll("[data-act]").forEach(function(b){b.addEventListener("click",function(ev){ev.preventDefault();ev.stopPropagation();azione(b.getAttribute("data-act"),b.getAttribute("data-id"))})});
 }
 function azione(act,id){var s=trova(id);if(!s)return;
-if(act==="inv"){var to=s.emailc||s.email;var url="mailto:"+encodeURIComponent(to)+"?bcc="+encodeURIComponent(MIO_BCC)+"&subject="+encodeURIComponent(mailSubj(s))+"&body="+encodeURIComponent(mailBody(s));var a=document.createElement("a");a.href=url;document.body.appendChild(a);a.click();a.remove();s.stato="inviata";save();rbac();toast("Mail aperta: controlla e premi Invia")}
-else if(act==="arc"){s.arch=true;save();rbac();toast("Scheda archiviata")}
+if(act==="arc"){s.arch=true;save();rbac();toast("Scheda archiviata")}
 else if(act==="rip"){s.arch=false;save();rbac();toast("Scheda ripristinata")}
 else if(act==="del"){schede=schede.filter(function(x){return x.id!==id});save();rbac();toast("Scheda eliminata")}}
 function bac(){g("vform").classList.add("hidden");g("vbac").classList.remove("hidden");g("fab").classList.remove("hidden");rbac();window.scrollTo(0,0)}
 function frm(){g("vbac").classList.add("hidden");g("vform").classList.remove("hidden");g("fab").classList.add("hidden");window.scrollTo(0,0)}
 g("gob").addEventListener("click",bac);g("fab").addEventListener("click",frm);
 var ov=g("overlay");g("bigfull").addEventListener("click",function(){g("ovqr").src=g("bigqr").src;ov.classList.remove("hidden")});g("ovclose").addEventListener("click",function(){ov.classList.add("hidden")});ov.addEventListener("click",function(e){if(e.target===ov)ov.classList.add("hidden")});
+["ll","lf","la"].forEach(function(lid){g(lid).addEventListener("click",function(e){var t=e.target.closest?e.target.closest("[data-act]"):null;if(!t)return;var act=t.getAttribute("data-act"),cid=t.getAttribute("data-id");if(act==="inv"){var s=trova(cid);if(s){setTimeout(function(){s.stato="inviata";save();rbac()},1000)}return}e.preventDefault();azione(act,cid)})});
 load();g("data").value=new Date().toISOString().slice(0,10);if(schede.length){bac()}
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){window.addEventListener("load",function(){navigator.serviceWorker.register("fiera-sw.js").catch(function(){})})}
 })();
