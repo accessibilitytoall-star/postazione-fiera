@@ -99,6 +99,8 @@ details.arcsez>summary::-webkit-details-marker{display:none}
 <textarea id="note" placeholder="Promemoria personali..."></textarea></fieldset>
 <fieldset><legend><label for="emailc">Email contatto (opzionale)</label></legend><p class="hint">Di norma viene rilevata in automatico dal biglietto. Compilala a mano solo come ripiego.</p>
 <input type="email" id="emailc" placeholder="nome@azienda.it" autocapitalize="off" autocorrect="off" spellcheck="false"></fieldset>
+<fieldset><legend><label for="emailc2">Seconda email (facoltativa, a mano)</label></legend><p class="hint">Aggiungi un secondo destinatario, se vuoi.</p>
+<input type="email" id="emailc2" placeholder="altra@azienda.it" autocapitalize="off" autocorrect="off" spellcheck="false"></fieldset>
 <fieldset><legend>Priorit&agrave;</legend><div class="prio" role="radiogroup" aria-label="Priorit&agrave;">
 <label><input type="radio" name="prio" value="alta">Alta</label>
 <label><input type="radio" name="prio" value="media" checked>Media</label>
@@ -155,14 +157,14 @@ g("scatto").addEventListener("change",function(e){addFoto(e.target.files);e.targ
 g("gal").addEventListener("change",function(e){addFoto(e.target.files);e.target.value=""});
 g("form").addEventListener("submit",function(e){e.preventDefault();
 var prio=(document.querySelector('input[name=prio]:checked')||{}).value||"media";var n=schede.length;
-var s={id:uid(),stato:"coda",arch:false,foto:foto.slice(),colpita:g("colpita").value.trim(),note:g("note").value.trim(),prio:prio,fiera:g("fiera").value.trim()||"Fiera",data:g("data").value||new Date().toISOString().slice(0,10),gdpr:g("gdpr").checked,emailc:(g("emailc").value.trim()||estratto.email||""),nome:(estratto.nome||pick(NOMI,n)),azienda:(estratto.azienda||pick(AZ,n)),sito:(estratto.sito||pick(SITI,n)),email:(estratto.email||pick(EM,n)),audit:null,bozza:null};
+var s={id:uid(),stato:"coda",arch:false,foto:foto.slice(),colpita:g("colpita").value.trim(),note:g("note").value.trim(),prio:prio,fiera:g("fiera").value.trim()||"Fiera",data:g("data").value||new Date().toISOString().slice(0,10),gdpr:g("gdpr").checked,emailc:(g("emailc").value.trim()||estratto.email||""),emailc2:g("emailc2").value.trim(),nome:(estratto.nome||pick(NOMI,n)),azienda:(estratto.azienda||pick(AZ,n)),sito:(estratto.sito||pick(SITI,n)),email:(estratto.email||pick(EM,n)),audit:null,bozza:null};
 schede.unshift(s);save();foto=[];rant();e.target.reset();estratto={};setEstato("");bac();elabora(s.id);toast("Scheda salvata")});
 // elaborazione simulata senza animazione: dopo poco la scheda e' pronta
 function elabora(id){setTimeout(function(){var s=trova(id);if(!s)return;var p=[78,64,82,55,70,88][schede.indexOf(s)%6];s.audit={p:p,n:(p<70?3:2)};s.bozza="Oggetto: "+mailSubj(s)+NL+NL+mailBody(s);s.stato="email";save();rbac()},800)}
 function mailSubj(s){return "Dopo "+s.fiera+" - un pensiero per "+s.azienda}
 function mailBody(s){var c=s.colpita?s.colpita:"il piacere di conoscerla allo stand";
 return "Gentile "+s.nome+","+NL+NL+"le scrivo a seguito del nostro incontro a "+s.fiera+". Mi ha colpita "+c.charAt(0).toLowerCase()+c.slice(1)+"."+NL+NL+"Dando un'occhiata a "+s.sito+" ho notato alcune opportunità per rendere il sito più accessibile"+(s.audit?" (punteggio attuale "+s.audit.p+"/100)":"")+", un tema su cui in AccessibilityToAll lavoriamo ogni giorno."+NL+NL+"Le va di sentirci per una breve chiamata?"+NL+NL+"Un caro saluto,"+NL+"Beatrice Biasuzzi - AccessibilityToAll"}
-function mailto(s){var to=s.emailc||s.email;return ("mailto:"+encodeURIComponent(to)+"?bcc="+encodeURIComponent(MIO_BCC)+"&subject="+encodeURIComponent(mailSubj(s))+"&body="+encodeURIComponent(mailBody(s))).split("&").join("&amp;")}
+function mailto(s){var list=[];if(s.emailc||s.email)list.push(s.emailc||s.email);if(s.emailc2)list.push(s.emailc2);var toEnc=list.map(encodeURIComponent).join(",");return ("mailto:"+toEnc+"?bcc="+encodeURIComponent(MIO_BCC)+"&subject="+encodeURIComponent(mailSubj(s))+"&body="+encodeURIComponent(mailBody(s))).split("&").join("&amp;")}
 function trova(id){for(var i=0;i<schede.length;i++)if(schede[i].id===id)return schede[i];return null}
 function chip(s){if(s.arch)return '<span class="chip c-arc">Archiviata</span>';if(s.stato==="inviata")return '<span class="chip c-inv">Inviata</span>';if(s.stato==="email")return '<span class="chip c-pronta">Email pronta</span>';return '<span class="chip c-att">In elaborazione</span>'}
 function rsch(s){
