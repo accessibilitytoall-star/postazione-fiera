@@ -312,6 +312,9 @@ function estrai(dataURL){setEstato("Leggo il biglietto e cerco l'email...");fetc
 
 function g(id){return document.getElementById(id)}
 function load(){try{schede=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){schede=[]}}
+function migraV1(){if(schede.length)return;try{if(localStorage.getItem("fiera_migr_v1"))return;var raw1=localStorage.getItem("fiera_v1");if(!raw1)return;var old=JSON.parse(raw1)||[];localStorage.setItem("fiera_migr_v1","1");if(!old.length)return;
+schede=old.map(function(o){return {id:o.id||uid(),creato:Date.now(),stato:(o.stato==="inviata"?"inviata":"email"),arch:false,foto:o.foto||[],colpita:o.colpita||"",note:o.note||"",prio:o.prio||"media",tag:"",forma:"lei",variante:"leggera",fiera:o.fiera||"Fiera",luogo:"",evdal:"",evfino:"",tempo:"passato",data:o.data||oggiStr(),gdpr:!!o.gdpr,emailc:(o.emailc||o.email||""),emailc2:(o.emailc2||""),nome:o.nome||"",azienda:o.azienda||"",sito:o.sito||"",email:(o.email||o.emailc||""),synced:false}});
+save();try{toast(schede.length+" contatti recuperati dalla versione precedente")}catch(e){}}catch(e){}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(schede))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function pick(a,i){return a[i%a.length]}
@@ -397,7 +400,7 @@ g("gob").addEventListener("click",bac);g("fab").addEventListener("click",frm);
 var ov=g("overlay");g("bigfull").addEventListener("click",function(){g("ovqr").src=g("bigqr").src;ov.classList.remove("hidden")});g("ovclose").addEventListener("click",function(){ov.classList.add("hidden")});ov.addEventListener("click",function(e){if(e.target===ov)ov.classList.add("hidden")});
 ["ll","lf","la"].forEach(function(lid){g(lid).addEventListener("click",function(e){var t=e.target.closest?e.target.closest("[data-act]"):null;if(!t)return;var act=t.getAttribute("data-act"),cid=t.getAttribute("data-id");if(act==="var")return;if(act==="inv"){var s=trova(cid);if(s){setTimeout(function(){s.stato="inviata";save();rbac()},1000)}return}e.preventDefault();azione(act,cid)})});
 ["ll","lf","la"].forEach(function(lid){g(lid).addEventListener("change",function(e){var t=e.target;if(!t||!t.getAttribute||t.getAttribute("data-act")!=="var")return;var s=trova(t.getAttribute("data-id"));if(!s)return;s.variante=t.value;save();var det=t.closest("details.sch");if(det){var ep=det.querySelector(".ep");if(ep)ep.innerHTML=previewHTML(s);var inv=det.querySelector('a[data-act="inv"]');if(inv)inv.setAttribute("href",mailto(s))}toast("Versione aggiornata")})});
-load();loadEv();bindEv();renderBar();prepForm();if(schede.length){bac()}
+load();migraV1();loadEv();bindEv();renderBar();prepForm();if(schede.length){bac()}
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){window.addEventListener("load",function(){navigator.serviceWorker.register("fiera-sw.js").catch(function(){})})}
 })();
 </script>
