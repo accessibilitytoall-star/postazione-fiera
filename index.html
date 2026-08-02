@@ -95,6 +95,13 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
 .stgrid{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--grigio)}
 .stgrid b{color:var(--testo)}
 select#tag{width:100%;min-height:48px;padding:12px 14px;font-size:1rem;border:2px solid var(--bordo);border-radius:10px;background:#fff;color:var(--testo);font-family:inherit}
+.more{border:1px solid var(--bordo);border-radius:12px;margin-bottom:16px;background:#fff}
+.more>summary{cursor:pointer;font-weight:700;padding:14px 16px;min-height:48px;list-style:none;display:flex;align-items:center;color:var(--blu)}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::after{content:"▾";margin-left:auto;color:var(--grigio)}
+.more[open]>summary::after{content:"▴"}
+.more>fieldset{padding:0 16px;margin-bottom:14px}
+.more>fieldset:first-of-type{margin-top:4px}
 .bcc{font-size:.8rem;color:var(--grigio);margin-top:6px}
 .sa{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}.sa .btn{flex:1 1 30%;min-height:44px;font-size:.9rem;padding:10px}
 .fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 18px);width:62px;height:62px;border-radius:50%;background:var(--blu);color:#fff;border:none;font-size:2rem;box-shadow:0 6px 18px rgba(11,79,138,.5);z-index:30;cursor:pointer}.fab:active{background:var(--blus)}
@@ -141,23 +148,24 @@ details.arcsez>summary::-webkit-details-marker{display:none}
 <textarea id="note" placeholder="Promemoria personali..."></textarea></fieldset>
 <fieldset><legend><label for="emailc">Email contatto (opzionale)</label></legend><p class="hint">Di norma viene rilevata in automatico dal biglietto. Compilala a mano solo come ripiego.</p>
 <input type="email" id="emailc" placeholder="nome@azienda.it" autocapitalize="off" autocorrect="off" spellcheck="false"></fieldset>
-<fieldset><legend><label for="emailc2">Seconda email (facoltativa, a mano)</label></legend><p class="hint">Aggiungi un secondo destinatario, se vuoi.</p>
-<input type="email" id="emailc2" placeholder="altra@azienda.it" autocapitalize="off" autocorrect="off" spellcheck="false"></fieldset>
-<fieldset><legend>Come rivolgermi al contatto</legend><p class="hint">Scegli ora il registro: il messaggio si adatta da solo.</p><div class="prio" role="radiogroup" aria-label="Tu o Lei">
-<label><input type="radio" name="forma" value="lei" checked>Lei (formale)</label>
-<label><input type="radio" name="forma" value="tu">Tu (informale)</label></div></fieldset>
+<fieldset><div class="gdpr"><input type="checkbox" id="gdpr"><label for="gdpr">Il contatto acconsente al trattamento dei dati per essere ricontattato (GDPR).</label></div></fieldset>
+<details class="more" id="more"><summary>Altri dettagli</summary>
+<fieldset><legend>Come rivolgermi al contatto</legend><p class="hint">Registro dell'email (predefinito: Tu).</p><div class="prio" role="radiogroup" aria-label="Tu o Lei">
+<label><input type="radio" name="forma" value="lei">Lei (formale)</label>
+<label><input type="radio" name="forma" value="tu" checked>Tu (informale)</label></div></fieldset>
 <fieldset><legend>Priorit&agrave;</legend><div class="prio" role="radiogroup" aria-label="Priorit&agrave;">
 <label><input type="radio" name="prio" value="alta">Alta</label>
 <label><input type="radio" name="prio" value="media" checked>Media</label>
 <label><input type="radio" name="prio" value="bassa">Bassa</label></div></fieldset>
-<fieldset><legend><label for="tag">Segmento (facoltativo)</label></legend><p class="hint">Aiuta a filtrare e segmentare i contatti.</p>
-<select id="tag"><option value="">— Nessuno —</option><option value="Espositore">Espositore</option><option value="Agenzia">Agenzia</option><option value="PA">Pubblica Amministrazione</option><option value="Fornitore">Fornitore</option><option value="Altro">Altro</option></select></fieldset>
-<fieldset id="fs-evento"><legend>Evento</legend><p class="hint" id="evrecap">Nessun evento selezionato</p></fieldset>
-<fieldset><div class="gdpr"><input type="checkbox" id="gdpr"><label for="gdpr">Il contatto acconsente al trattamento dei dati per essere ricontattato (GDPR).</label></div></fieldset>
+<fieldset><legend><label for="tag">Segmento</label></legend>
+<select id="tag"><option value="">— Nessuno —</option><option value="Espositore" selected>Espositore</option><option value="Agenzia">Agenzia</option><option value="PA">Pubblica Amministrazione</option><option value="Fornitore">Fornitore</option><option value="Altro">Altro</option></select></fieldset>
+<fieldset><legend><label for="emailc2">Seconda email (facoltativa)</label></legend>
+<input type="email" id="emailc2" placeholder="altra@azienda.it" autocapitalize="off" autocorrect="off" spellcheck="false"></fieldset>
+</details>
 <div class="fa"><button type="submit" class="btn bp">Salva e vai in bacheca</button><button type="button" class="btn bs" id="salvanuovo">Salva e nuovo</button></div>
 </form>
 <button type="button" class="btn bg" id="gob">Vedi le schede in bacheca</button>
-<p class="nt">Prototipo dimostrativo. La lavorazione (estrazione del contatto e preparazione dell'email) &egrave; simulata con esiti d'esempio. Le email non vengono realmente inviate. I dati restano su questo dispositivo.</p>
+<p class="nt">L'estrazione dal biglietto &egrave; reale (AI). I contatti restano su questo dispositivo finch&eacute; tocchi <strong>Sincronizza</strong>, che li salva nel tuo database. Fai un <strong>Backup</strong> per averne una copia.</p>
 </section>
 
 <section id="vbac" class="hidden" aria-labelledby="hbac">
@@ -205,7 +213,7 @@ partnership:{lei:["Credo che insieme potremmo creare qualcosa di valore: le va d
 var FRASI_LABEL={leggera:"Leggera",calda:"Calda",valore:"Valore",partnership:"Partnership"};
 var FRASI_ORD=["leggera","calda","valore","partnership"];
 var EKEY="fiera_eventi",AKEY="fiera_evento_attivo",FKEY="fiera_forma_default",WHKEY="fiera_webhook";
-var eventi=[],eventoAttivo=null,formaDefault="lei";
+var eventi=[],eventoAttivo=null,formaDefault="tu";
 var MESI=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
 function oggiStr(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
 function loadEv(){
@@ -218,7 +226,7 @@ if(!eventi.length){eventi=[
 {id:"aiweek",nome:"AI Week",dal:"",al:"",luogo:"Rimini"}
 ];saveEv()}
 try{eventoAttivo=localStorage.getItem(AKEY)||null}catch(e){eventoAttivo=null}
-try{formaDefault=localStorage.getItem(FKEY)||"lei"}catch(e){formaDefault="lei"}
+try{formaDefault=localStorage.getItem(FKEY)||"tu"}catch(e){formaDefault="tu"}
 }
 function saveEv(){try{localStorage.setItem(EKEY,JSON.stringify(eventi))}catch(e){}}
 function setAttivo(id){eventoAttivo=id||null;try{localStorage.setItem(AKEY,id||"")}catch(e){}}
@@ -315,7 +323,7 @@ function load(){try{schede=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){sc
 function migraV1(){if(schede.length)return;try{if(localStorage.getItem("fiera_migr_v1"))return;var raw1=localStorage.getItem("fiera_v1");if(!raw1)return;var old=JSON.parse(raw1)||[];localStorage.setItem("fiera_migr_v1","1");if(!old.length)return;
 schede=old.map(function(o){return {id:o.id||uid(),creato:Date.now(),stato:(o.stato==="inviata"?"inviata":"email"),arch:false,foto:o.foto||[],colpita:o.colpita||"",note:o.note||"",prio:o.prio||"media",tag:"",forma:"lei",variante:"leggera",fiera:o.fiera||"Fiera",luogo:"",evdal:"",evfino:"",tempo:"passato",data:o.data||oggiStr(),gdpr:!!o.gdpr,emailc:(o.emailc||o.email||""),emailc2:(o.emailc2||""),nome:o.nome||"",azienda:o.azienda||"",sito:o.sito||"",email:(o.email||o.emailc||""),synced:false}});
 save();try{toast(schede.length+" contatti recuperati dalla versione precedente")}catch(e){}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(schede))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(schede));var u=Math.round((localStorage.getItem(KEY)||"").length/(5*1024*1024)*100);if(u>80){toast("&#9888;&#65039; Memoria quasi piena ("+u+"%). Esporta i contatti (CSV) e archivia/elimina le vecchie schede con foto.")}}catch(e){toast("&#9888;&#65039; Memoria piena: esporta i contatti (CSV) e togli qualche foto. L'ultima modifica potrebbe non essere salvata.")}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function pick(a,i){return a[i%a.length]}
 function esc(t){t=String(t);t=t.split("&").join("&amp;");t=t.split("<").join("&lt;");t=t.split(">").join("&gt;");t=t.split(String.fromCharCode(34)).join("&quot;");return t}
