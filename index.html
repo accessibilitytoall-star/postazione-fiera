@@ -121,6 +121,8 @@ details.arcsez>summary::-webkit-details-marker{display:none}
 .overlay img{width:min(82vw,82vh);height:auto;max-width:440px}
 .ov-cap{font-size:1.05rem;font-weight:700;color:var(--blu)}
 .ov-close{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:16px;width:48px;height:48px;border-radius:50%;border:2px solid var(--bordo);background:#fff;font-size:1.6rem;cursor:pointer}
+.spazio{font-size:14px;margin:0 0 12px;padding:8px 12px;border-radius:10px;background:#E8F1FB;color:#0A2A55;border:2px solid #0C6CD3}
+.spazio.pieno{background:#FDEBD3;border-color:#EF8216}
 </style>
 </head>
 <body>
@@ -176,7 +178,8 @@ details.arcsez>summary::-webkit-details-marker{display:none}
 <button type="button" class="btn bg" id="expbak">&#128190; Backup</button>
 <label class="btn bg" for="impbak">&#8635; Ripristina<input type="file" id="impbak" accept=".json,application/json"></label>
 </div>
-<p class="nt" style="margin-top:0;margin-bottom:12px">I contatti sono salvati solo su questo dispositivo. A fine giornata esporta in Excel o fai un backup, per non perderli.</p>
+<p class="nt" style="margin-top:0;margin-bottom:8px">I contatti si sincronizzano da soli quando c'è rete. Le foto dei biglietti restano su questo telefono: a fine fiera fai un Backup per averne una copia.</p>
+<p class="spazio" id="spazio" role="status" aria-live="polite">📦 Calcolo lo spazio…</p>
 <div class="bcstat" id="oggibar"></div>
 <div class="bcfilter"><label for="tagfilter">Filtra per segmento</label><select id="tagfilter"><option value="">Tutti i segmenti</option></select></div>
 <details class="statsbox"><summary>Statistiche per evento</summary><div id="statsbody"></div></details>
@@ -260,15 +263,17 @@ function nonSync(){return schede.filter(function(s){return !s.synced})}
 function renderSyncBtn(){var b=g("syncbtn");if(!b)return;var n=nonSync().length;b.textContent="☁ Sincronizza"+(n?(" ("+n+")"):"")}
 function payloadOf(s){return {id:s.id,nome:s.nome,azienda:s.azienda,email:(s.emailc||s.email||""),email2:(s.emailc2||""),sito:s.sito,evento:s.fiera,luogo:(s.luogo||""),evento_dal:(s.evdal||""),evento_al:(s.evfino||""),data:s.data,priorita:prioLabel(s.prio),segmento:(s.tag||""),registro:(s.forma==="tu"?"Tu":"Lei"),tipo:(s.tempo==="futuro"?"invito":"follow-up"),stato:statoLabel(s),variante:(FRASI_LABEL[s.variante]||s.variante||""),colpita:(s.colpita||""),note:(s.note||""),gdpr:(s.gdpr?"sì":"no"),oggetto:mailSubj(s),corpo:mailBody(s)}}
 var SUPA_SYNC="https://uoirjhyezxnkxbmoxhet.supabase.co/functions/v1/fiera-contatto";
-function syncOra(){var todo=nonSync();if(!todo.length){toast("Tutto già sincronizzato");return}
+var syncInCorso=false;
+function syncAuto(){if(syncInCorso||!navigator.onLine)return;if(!nonSync().length)return;syncOra(true)}
+function syncOra(silenzioso){silenzioso=(silenzioso===true);var todo=nonSync();if(!todo.length){if(!silenzioso)toast("Tutto già sincronizzato");return}if(syncInCorso)return;syncInCorso=true;
 var hook=(localStorage.getItem(WHKEY)||"").trim();
-toast("Sincronizzo "+todo.length+"...");var ok=0,done=0,tot=todo.length;
+if(!silenzioso)toast("Sincronizzo "+todo.length+"...");var ok=0,done=0,tot=todo.length;
 todo.forEach(function(s){
 fetch(SUPA_SYNC,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payloadOf(s))})
 .then(function(r){return r.json().catch(function(){return{}})})
 .then(function(j){if(j&&j.ok){s.synced=true;ok++;if(hook){try{fetch(hook,{method:"POST",mode:"no-cors",headers:{"content-type":"text/plain;charset=utf-8"},body:JSON.stringify(payloadOf(s))})}catch(e){}}}})
 .catch(function(){})
-.then(function(){done++;if(done===tot){save();rbac();toast(ok+" di "+tot+" sincronizzati"+(ok<tot?" (riprova con rete migliore)":""))}})})}
+.then(function(){done++;if(done===tot){syncInCorso=false;save();rbac();if(!silenzioso||ok)toast("☁ "+ok+" di "+tot+" sincronizzati"+(ok<tot?" (riprovo da sola quando c'è rete)":""))}})})}
 function prioLabel(p){return {alta:"Alta",media:"Media",bassa:"Bassa"}[p]||p}
 function statoLabel(s){if(s.arch)return"Archiviata";if(s.stato==="inviata")return"Inviata";if(s.stato==="email")return"Email pronta";return"In elaborazione"}
 function dlBlob(blob,fn){var u=URL.createObjectURL(blob);var a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.parentNode&&a.parentNode.removeChild(a)},1500)}
@@ -315,7 +320,7 @@ var EM=["info@studioferri.it","booking@hotelaurora.com","urp@comune.lecco.it","c
 var SUPA_FN="https://uoirjhyezxnkxbmoxhet.supabase.co/functions/v1/estrai-contatto";
 var estratto={};
 function setEstato(t){var e=g("estato");if(e)e.textContent=t}
-function downscale(dataURL,max){return new Promise(function(res){var im=new Image();im.onload=function(){var w=im.width,hh=im.height,sc=Math.min(1,max/Math.max(w,hh));var cw=Math.round(w*sc),ch=Math.round(hh*sc);var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;cv.getContext("2d").drawImage(im,0,0,cw,ch);res(cv.toDataURL("image/jpeg",0.82))};im.onerror=function(){res(dataURL)};im.src=dataURL})}
+function downscale(dataURL,max){return new Promise(function(res){var im=new Image();im.onload=function(){var w=im.width,hh=im.height,sc=Math.min(1,max/Math.max(w,hh));var cw=Math.round(w*sc),ch=Math.round(hh*sc);var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;cv.getContext("2d").drawImage(im,0,0,cw,ch);res(cv.toDataURL("image/jpeg",0.6))};im.onerror=function(){res(dataURL)};im.src=dataURL})}
 function estrai(dataURL){setEstato("Leggo il biglietto e cerco l'email...");fetch(SUPA_FN,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({image:dataURL})}).then(function(r){return r.json()}).then(function(d){var c=(d&&d.contatto)||{};estratto=c;var fonte=(d&&d.fonte)||"";if(c.email){g("emailc").value=c.email;var src=fonte==="sito"?" (trovata sul sito)":fonte==="web"?" (trovata sul web)":" (dal biglietto)";setEstato("Email: "+c.email+src)}else{var f=[];if(c.nome)f.push(c.nome);if(c.azienda)f.push(c.azienda);setEstato(f.length?("Letto: "+f.join(" - ")+" - email non trovata, compilala a mano"):"Biglietto non leggibile: compila l'email a mano")}}).catch(function(){setEstato("Nessuna rete ora: l'email si compila quando torni online, o a mano")})}
 
 function g(id){return document.getElementById(id)}
@@ -323,12 +328,22 @@ function load(){try{schede=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){sc
 function migraV1(){if(schede.length)return;try{if(localStorage.getItem("fiera_migr_v1"))return;var raw1=localStorage.getItem("fiera_v1");if(!raw1)return;var old=JSON.parse(raw1)||[];localStorage.setItem("fiera_migr_v1","1");if(!old.length)return;
 schede=old.map(function(o){return {id:o.id||uid(),creato:Date.now(),stato:(o.stato==="inviata"?"inviata":"email"),arch:false,foto:o.foto||[],colpita:o.colpita||"",note:o.note||"",prio:o.prio||"media",tag:"",forma:"lei",variante:"leggera",fiera:o.fiera||"Fiera",luogo:"",evdal:"",evfino:"",tempo:"passato",data:o.data||oggiStr(),gdpr:!!o.gdpr,emailc:(o.emailc||o.email||""),emailc2:(o.emailc2||""),nome:o.nome||"",azienda:o.azienda||"",sito:o.sito||"",email:(o.email||o.emailc||""),synced:false}});
 save();try{toast(schede.length+" contatti recuperati dalla versione precedente")}catch(e){}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(schede));var u=Math.round((localStorage.getItem(KEY)||"").length/(5*1024*1024)*100);if(u>80){toast("&#9888;&#65039; Memoria quasi piena ("+u+"%). Esporta i contatti (CSV) e archivia/elimina le vecchie schede con foto.")}}catch(e){toast("&#9888;&#65039; Memoria piena: esporta i contatti (CSV) e togli qualche foto. L'ultima modifica potrebbe non essere salvata.")}}
+var FDB=null,fotoScritte={},fotoPronte=false;
+function fdb(){return new Promise(function(res,rej){if(FDB)return res(FDB);if(!window.indexedDB)return rej(new Error("archivio foto non disponibile"));var r=indexedDB.open("fiera_foto",1);r.onupgradeneeded=function(){r.result.createObjectStore("foto")};r.onsuccess=function(){FDB=r.result;res(FDB)};r.onerror=function(){rej(r.error)}})}
+function fotoPut(id,arr){return fdb().then(function(db){return new Promise(function(res,rej){var t=db.transaction("foto","readwrite");t.objectStore("foto").put(arr,id);t.oncomplete=function(){res()};t.onerror=function(){rej(t.error)};t.onabort=function(){rej(t.error)}})})}
+function fotoCaricaTutte(){return fdb().then(function(db){return new Promise(function(res,rej){var out={},t=db.transaction("foto","readonly"),c=t.objectStore("foto").openCursor();c.onsuccess=function(){var k=c.result;if(k){out[k.key]=k.value;k.continue()}else res(out)};c.onerror=function(){rej(c.error)}})})}
+function salvaFoto(){schede.forEach(function(s){var n=(s.foto&&s.foto.length)||0;var id=String(s.id);if(n&&fotoScritte[id]!==n){fotoScritte[id]=n;fotoPut(id,s.foto).catch(function(e){fotoScritte[id]=-1;toast("⚠️ Una foto non è stata salvata: esporta subito un backup.")})}})}
+function save(){if(fotoPronte)salvaFoto();var leggere=schede.map(function(s){var c={};for(var k in s){if(Object.prototype.hasOwnProperty.call(s,k))c[k]=s[k]}var n=(s.foto&&s.foto.length)||0;if(fotoPronte&&(n||s.fotoN)){c.fotoN=n||s.fotoN||0;c.foto=[]}return c});
+try{localStorage.setItem(KEY,JSON.stringify(leggere))}catch(e){toast("⚠️ Memoria dei contatti piena: esporta un backup. L'ultima modifica potrebbe non essere salvata.")}
+renderSpazio()}
+function renderSpazio(){var b=g("spazio");if(!b)return;var nf=0;schede.forEach(function(s){nf+=((s.foto&&s.foto.length)||s.fotoN||0)});
+if(navigator.storage&&navigator.storage.estimate){navigator.storage.estimate().then(function(e){var u=e.usage||0,q=e.quota||0,pc=q?Math.round(u/q*100):0;b.textContent="📦 Spazio: "+(u/1048576).toFixed(1)+" MB usati"+(q?(" su "+Math.round(q/1048576)+" MB ("+pc+"%)"):"")+" · "+nf+" foto";b.className="spazio"+(pc>=80?" pieno":"");if(pc>=80)toast("⚠️ Spazio all'"+pc+"%: esporta un backup e archivia le schede vecchie.")}).catch(function(){b.textContent="📦 "+nf+" foto salvate"})}else{b.textContent="📦 "+nf+" foto salvate"}}
+function avviaFoto(){fotoCaricaTutte().then(function(m){schede.forEach(function(s){var id=String(s.id);if(m[id]&&!(s.foto&&s.foto.length)){s.foto=m[id]}if(s.foto&&s.foto.length&&m[id]&&m[id].length===s.foto.length)fotoScritte[id]=s.foto.length});fotoPronte=true;save();rbac()}).catch(function(e){fotoPronte=false;toast("⚠️ Archivio foto non disponibile: le foto restano nella memoria piccola.")})}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function pick(a,i){return a[i%a.length]}
 function esc(t){t=String(t);t=t.split("&").join("&amp;");t=t.split("<").join("&lt;");t=t.split(">").join("&gt;");t=t.split(String.fromCharCode(34)).join("&quot;");return t}
 function toast(m){var t=g("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("show")},2400)}
-function addFoto(files){Array.prototype.forEach.call(files,function(f){if(!f.type||f.type.indexOf("image")!==0)return;var r=new FileReader();r.onload=function(e){downscale(e.target.result,1280).then(function(ds){foto.push(ds);rant();estrai(ds)})};r.readAsDataURL(f)})}
+function addFoto(files){Array.prototype.forEach.call(files,function(f){if(!f.type||f.type.indexOf("image")!==0)return;var r=new FileReader();r.onload=function(e){downscale(e.target.result,1000).then(function(ds){foto.push(ds);rant();estrai(ds)})};r.readAsDataURL(f)})}
 function rant(){var b=g("ant");b.innerHTML="";foto.forEach(function(s,i){var fig=document.createElement("figure");fig.style.margin="0";fig.innerHTML='<img src="'+s+'" alt="Anteprima foto '+(i+1)+'">';b.appendChild(fig)})}
 g("scatto").addEventListener("change",function(e){addFoto(e.target.files);e.target.value=""});
 g("gal").addEventListener("change",function(e){addFoto(e.target.files);e.target.value=""});
@@ -341,8 +356,8 @@ var colp=(t==="passato")?g("colpita").value.trim():"";
 var emailIn=(g("emailc").value.trim()||estratto.email||"");
 var dupKey=emailIn.toLowerCase();
 var dup=dupKey&&schede.some(function(x){return ((x.emailc||x.email||"").toLowerCase())===dupKey});
-var s={id:uid(),creato:Date.now(),stato:"coda",arch:false,foto:foto.slice(),colpita:colp,note:g("note").value.trim(),prio:prio,tag:g("tag").value||"",forma:forma,variante:"leggera",fiera:ev.nome,luogo:ev.luogo||"",evdal:ev.dal||"",evfino:ev.al||"",tempo:t,data:oggiStr(),gdpr:g("gdpr").checked,emailc:emailIn,emailc2:g("emailc2").value.trim(),nome:(estratto.nome||pick(NOMI,n)),azienda:(estratto.azienda||pick(AZ,n)),sito:(estratto.sito||pick(SITI,n)),email:(estratto.email||pick(EM,n)),synced:false};
-schede.unshift(s);save();foto=[];rant();g("form").reset();estratto={};setEstato("");elabora(s.id);
+var s={id:uid(),creato:Date.now(),stato:"coda",arch:false,foto:foto.slice(),colpita:colp,note:g("note").value.trim(),prio:prio,tag:g("tag").value||"",forma:forma,variante:"leggera",fiera:ev.nome,luogo:ev.luogo||"",evdal:ev.dal||"",evfino:ev.al||"",tempo:t,data:oggiStr(),gdpr:g("gdpr").checked,emailc:emailIn,emailc2:g("emailc2").value.trim(),nome:(estratto.nome||""),azienda:(estratto.azienda||""),sito:(estratto.sito||""),email:(estratto.email||""),synced:false};
+schede.unshift(s);save();setTimeout(syncAuto,1500);foto=[];rant();g("form").reset();estratto={};setEstato("");elabora(s.id);
 toast(dup?"Salvato — attenzione: email già presente":"Scheda salvata");
 if(restaInForm){renderBar();prepForm();window.scrollTo(0,0)}else{bac()}}
 g("form").addEventListener("submit",function(e){e.preventDefault();salva(false)});
@@ -409,6 +424,7 @@ var ov=g("overlay");g("bigfull").addEventListener("click",function(){g("ovqr").s
 ["ll","lf","la"].forEach(function(lid){g(lid).addEventListener("click",function(e){var t=e.target.closest?e.target.closest("[data-act]"):null;if(!t)return;var act=t.getAttribute("data-act"),cid=t.getAttribute("data-id");if(act==="var")return;if(act==="inv"){var s=trova(cid);if(s){setTimeout(function(){s.stato="inviata";save();rbac()},1000)}return}e.preventDefault();azione(act,cid)})});
 ["ll","lf","la"].forEach(function(lid){g(lid).addEventListener("change",function(e){var t=e.target;if(!t||!t.getAttribute||t.getAttribute("data-act")!=="var")return;var s=trova(t.getAttribute("data-id"));if(!s)return;s.variante=t.value;save();var det=t.closest("details.sch");if(det){var ep=det.querySelector(".ep");if(ep)ep.innerHTML=previewHTML(s);var inv=det.querySelector('a[data-act="inv"]');if(inv)inv.setAttribute("href",mailto(s))}toast("Versione aggiornata")})});
 load();migraV1();loadEv();bindEv();renderBar();prepForm();if(schede.length){bac()}
+avviaFoto();renderSpazio();window.addEventListener("online",syncAuto);setInterval(syncAuto,120000);setTimeout(syncAuto,5000);
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){window.addEventListener("load",function(){navigator.serviceWorker.register("fiera-sw.js").catch(function(){})})}
 })();
 </script>
