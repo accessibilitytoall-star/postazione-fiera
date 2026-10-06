@@ -237,7 +237,9 @@ function setFormaDef(f){formaDefault=f;try{localStorage.setItem(FKEY,f)}catch(e)
 function evById(id){for(var i=0;i<eventi.length;i++)if(eventi[i].id===id)return eventi[i];return null}
 function evAttivo(){return evById(eventoAttivo)}
 function fmtData(d){if(!d)return"";var p=String(d).split("-");if(p.length!==3)return d;return parseInt(p[2],10)+" "+MESI[parseInt(p[1],10)-1]+" "+p[0]}
-function fmtRange(dal,al){if(!dal&&!al)return"date da definire";if(dal&&al){var pa=dal.split("-"),pb=al.split("-");if(pa[0]===pb[0]&&pa[1]===pb[1])return "dal "+parseInt(pa[2],10)+" al "+parseInt(pb[2],10)+" "+MESI[parseInt(pb[1],10)-1]+" "+pb[0];return "dal "+fmtData(dal)+" al "+fmtData(al)}return fmtData(dal||al)}
+function vocaleN(n){n=parseInt(n,10);return n===1||n===8||n===11||(n>=80&&n<90)}
+function prepD(pre,n){var v=vocaleN(n);if(pre==="il")return v?"l'":"il ";if(pre==="dal")return v?"dall'":"dal ";return v?"all'":"al "}
+function fmtRange(dal,al){if(!dal&&!al)return"date da definire";if(dal&&al&&dal===al){var q=dal.split("-");return prepD("il",q[2])+fmtData(dal)}if(dal&&al){var pa=dal.split("-"),pb=al.split("-");if(pa[0]===pb[0]&&pa[1]===pb[1])return prepD("dal",pa[2])+parseInt(pa[2],10)+" "+prepD("al",pb[2])+parseInt(pb[2],10)+" "+MESI[parseInt(pb[1],10)-1]+" "+pb[0];return prepD("dal",pa[2])+fmtData(dal)+" "+prepD("al",pb[2])+fmtData(al)}var u=(dal||al).split("-");return prepD("il",u[2])+fmtData(dal||al)}
 function tempoEv(ev){if(!ev||!ev.dal)return"passato";return ev.dal>oggiStr()?"futuro":"passato"}
 function renderBar(){var b=g("evbar");if(!b)return;var ev=evAttivo();
 if(!ev){b.innerHTML='<div class="evb-no"><span>Dove sei adesso?</span><button type="button" class="btn bp" id="evpick" style="width:auto;min-height:42px;padding:8px 16px">Scegli evento</button></div>';return}
