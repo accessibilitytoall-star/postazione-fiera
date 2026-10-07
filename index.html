@@ -263,7 +263,7 @@ function addEvRow(){var ne={id:uid(),nome:"Nuovo evento",dal:"",al:"",luogo:""};
 function prepForm(){var ev=evAttivo();var t=ev?tempoEv(ev):"passato";var fs=g("fs-colpita");if(fs)fs.classList.toggle("hidden",t==="futuro");var r=document.querySelector('input[name=forma][value="'+formaDefault+'"]');if(r)r.checked=true;var rec=g("evrecap");if(rec){rec.innerHTML=ev?("<strong>"+esc(ev.nome)+"</strong> · "+esc(fmtRange(ev.dal,ev.al))+(ev.luogo?" · "+esc(ev.luogo):"")+" · data: "+esc(fmtData(oggiStr()))+" · "+(t==="futuro"?"invito (futuro)":"follow-up (passato)")):"Nessun evento selezionato — toccalo in alto"}}
 function nonSync(){return schede.filter(function(s){return !s.synced})}
 function renderSyncBtn(){var b=g("syncbtn");if(!b)return;var n=nonSync().length;b.textContent="☁ Sincronizza"+(n?(" ("+n+")"):"")}
-function payloadOf(s){return {id:s.id,nome:s.nome,azienda:s.azienda,email:(s.emailc||s.email||""),email2:(s.emailc2||""),sito:s.sito,evento:s.fiera,luogo:(s.luogo||""),evento_dal:(s.evdal||""),evento_al:(s.evfino||""),data:s.data,priorita:prioLabel(s.prio),segmento:(s.tag||""),registro:(s.forma==="tu"?"Tu":"Lei"),tipo:(s.tempo==="futuro"?"invito":"follow-up"),stato:statoLabel(s),variante:(FRASI_LABEL[s.variante]||s.variante||""),colpita:(s.colpita||""),note:(s.note||""),gdpr:(s.gdpr?"sì":"no"),oggetto:mailSubj(s),corpo:mailBody(s)}}
+function payloadOf(s){return {id:s.id,nome:s.nome,azienda:s.azienda,email:(pulisciEmail(s.emailc||s.email)||s.emailc||s.email||""),email2:(pulisciEmail(s.emailc2)||s.emailc2||""),sito:s.sito,evento:s.fiera,luogo:(s.luogo||""),evento_dal:(s.evdal||""),evento_al:(s.evfino||""),data:s.data,priorita:prioLabel(s.prio),segmento:(s.tag||""),registro:(s.forma==="tu"?"Tu":"Lei"),tipo:(s.tempo==="futuro"?"invito":"follow-up"),stato:statoLabel(s),variante:(FRASI_LABEL[s.variante]||s.variante||""),colpita:(s.colpita||""),note:(s.note||""),gdpr:(s.gdpr?"sì":"no"),oggetto:mailSubj(s),corpo:mailBody(s)}}
 var SUPA_SYNC="https://uoirjhyezxnkxbmoxhet.supabase.co/functions/v1/fiera-contatto";
 var syncInCorso=false;
 function syncAuto(){if(syncInCorso||!navigator.onLine)return;if(!nonSync().length)return;syncOra(true)}
@@ -323,7 +323,7 @@ var SUPA_FN="https://uoirjhyezxnkxbmoxhet.supabase.co/functions/v1/estrai-contat
 var estratto={};
 function setEstato(t){var e=g("estato");if(e)e.textContent=t}
 function downscale(dataURL,max){return new Promise(function(res){var im=new Image();im.onload=function(){var w=im.width,hh=im.height,sc=Math.min(1,max/Math.max(w,hh));var cw=Math.round(w*sc),ch=Math.round(hh*sc);var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;cv.getContext("2d").drawImage(im,0,0,cw,ch);res(cv.toDataURL("image/jpeg",0.6))};im.onerror=function(){res(dataURL)};im.src=dataURL})}
-function estrai(dataURL){setEstato("Leggo il biglietto e cerco l'email...");fetch(SUPA_FN,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({image:dataURL})}).then(function(r){return r.json()}).then(function(d){var c=(d&&d.contatto)||{};estratto=c;var fonte=(d&&d.fonte)||"";if(c.email){g("emailc").value=c.email;var src=fonte==="sito"?" (trovata sul sito)":fonte==="web"?" (trovata sul web)":" (dal biglietto)";setEstato("Email: "+c.email+src)}else{var f=[];if(c.nome)f.push(c.nome);if(c.azienda)f.push(c.azienda);setEstato(f.length?("Letto: "+f.join(" - ")+" - email non trovata, compilala a mano"):"Biglietto non leggibile: compila l'email a mano")}}).catch(function(){setEstato("Nessuna rete ora: l'email si compila quando torni online, o a mano")})}
+function estrai(dataURL){setEstato("Leggo il biglietto e cerco l'email...");fetch(SUPA_FN,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({image:dataURL})}).then(function(r){return r.json()}).then(function(d){var c=(d&&d.contatto)||{};estratto=c;var fonte=(d&&d.fonte)||"";if(c.email)c.email=pulisciEmail(c.email);if(c.email){g("emailc").value=c.email;var src=fonte==="sito"?" (trovata sul sito)":fonte==="web"?" (trovata sul web)":" (dal biglietto)";setEstato("Email: "+c.email+src)}else{var f=[];if(c.nome)f.push(c.nome);if(c.azienda)f.push(c.azienda);setEstato(f.length?("Letto: "+f.join(" - ")+" - email non trovata, compilala a mano"):"Biglietto non leggibile: compila l'email a mano")}}).catch(function(){setEstato("Nessuna rete ora: l'email si compila quando torni online, o a mano")})}
 
 function g(id){return document.getElementById(id)}
 function load(){try{schede=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){schede=[]}}
@@ -355,7 +355,7 @@ var t=tempoEv(ev);
 var prio=(document.querySelector('input[name=prio]:checked')||{}).value||"media";var n=schede.length;
 var forma=(document.querySelector('input[name=forma]:checked')||{}).value||formaDefault;
 var colp=(t==="passato")?g("colpita").value.trim():"";
-var emailIn=(g("emailc").value.trim()||estratto.email||"");
+var emailIn=pulisciEmail(g("emailc").value||estratto.email||"")||(g("emailc").value.trim()||estratto.email||"");
 var dupKey=emailIn.toLowerCase();
 var dup=dupKey&&schede.some(function(x){return ((x.emailc||x.email||"").toLowerCase())===dupKey});
 var s={id:uid(),creato:Date.now(),stato:"coda",arch:false,foto:foto.slice(),colpita:colp,note:g("note").value.trim(),prio:prio,tag:g("tag").value||"",forma:forma,variante:"leggera",fiera:ev.nome,luogo:ev.luogo||"",evdal:ev.dal||"",evfino:ev.al||"",tempo:t,data:oggiStr(),gdpr:g("gdpr").checked,emailc:emailIn,emailc2:g("emailc2").value.trim(),nome:(estratto.nome||""),azienda:(estratto.azienda||""),sito:(estratto.sito||""),email:(estratto.email||""),synced:false};
@@ -377,11 +377,13 @@ var craw=s.colpita?s.colpita:(tu?"il piacere di conoscerti allo stand":"il piace
 var c=craw.charAt(0).toLowerCase()+craw.slice(1);
 return (tu?"ti scrivo a seguito del nostro incontro ":"le scrivo a seguito del nostro incontro ")+prepA(s.fiera)+s.fiera+". Mi ha colpita "+c+"."}
 function mailSubj(s){return s.tempo==="futuro"?("Ci vediamo "+prepA(s.fiera)+s.fiera+"?"):("Dopo "+s.fiera+" - un pensiero per "+s.azienda)}
+function pulisciEmail(e){e=String(e||"").replace(/\s+/g,"").replace(/^mailto:/i,"").toLowerCase();return /^[^@,;]+@[^@,;]+\.[a-z]{2,}$/.test(e)?e:""}
+function saluto(s){var tu=s.forma==="tu";var n=String(s.nome||"").trim();var nome=tu?n.split(" ")[0]:n;if(!nome)return tu?"Ciao,":"Buongiorno,";return (tu?"Ciao ":"Gentile ")+nome+","}
 function mailBody(s){var tu=s.forma==="tu";var nome=tu?String(s.nome).split(" ")[0]:s.nome;var salu=tu?"A presto,":"Un caro saluto,";
-return (tu?"Ciao ":"Gentile ")+nome+","+NL+NL+ctxText(s)+NL+NL+PRES+NL+NL+invitoTxt(s)+NL+"Prenota il caffè digitale: "+ZOOM+NL+NL+salu+NL+"Beatrice Biasuzzi - AccessibilityToAll"+NL+"beatrice@accessibilitytoall.com"}
+return saluto(s)+NL+NL+ctxText(s)+NL+NL+PRES+NL+NL+invitoTxt(s)+NL+"Prenota il caffè digitale: "+ZOOM+NL+NL+salu+NL+"Beatrice Biasuzzi - AccessibilityToAll"+NL+"beatrice@accessibilitytoall.com"}
 function previewHTML(s){var tu=s.forma==="tu";var nome=esc(tu?String(s.nome).split(" ")[0]:s.nome);var salu=tu?"A presto,":"Un caro saluto,";
-return (tu?"Ciao ":"Gentile ")+nome+",<br><br>"+esc(ctxText(s))+"<br><br>"+esc(PRES)+"<br><br>"+invitoHTML(s)+"<br><br>"+salu+"<br>Beatrice Biasuzzi - AccessibilityToAll<br>beatrice@accessibilitytoall.com"}
-function mailto(s){var list=[];if(s.emailc||s.email)list.push(s.emailc||s.email);if(s.emailc2)list.push(s.emailc2);var toEnc=list.map(encodeURIComponent).join(",");return ("mailto:"+toEnc+"?bcc="+encodeURIComponent(MIO_BCC)+"&subject="+encodeURIComponent(mailSubj(s))+"&body="+encodeURIComponent(mailBody(s))).split("&").join("&amp;")}
+return esc(saluto(s))+"<br><br>"+esc(ctxText(s))+"<br><br>"+esc(PRES)+"<br><br>"+invitoHTML(s)+"<br><br>"+salu+"<br>Beatrice Biasuzzi - AccessibilityToAll<br>beatrice@accessibilitytoall.com"}
+function mailto(s){var list=[];var e1=pulisciEmail(s.emailc||s.email),e2=pulisciEmail(s.emailc2);if(e1)list.push(e1);if(e2&&e2!==e1)list.push(e2);var toEnc=list.map(encodeURIComponent).join(",");return ("mailto:"+toEnc+"?bcc="+encodeURIComponent(MIO_BCC)+"&subject="+encodeURIComponent(mailSubj(s))+"&body="+encodeURIComponent(mailBody(s))).split("&").join("&amp;")}
 function trova(id){for(var i=0;i<schede.length;i++)if(schede[i].id===id)return schede[i];return null}
 function chip(s){if(s.arch)return '<span class="chip c-arc">Archiviata</span>';if(s.stato==="inviata")return '<span class="chip c-inv">Inviata</span>';if(s.stato==="email")return '<span class="chip c-pronta">Email pronta</span>';return '<span class="chip c-att">In elaborazione</span>'}
 function daRicontattare(s){return !s.arch&&s.stato!=="inviata"&&s.data&&s.data<oggiStr()}
@@ -392,7 +394,7 @@ var segChip=s.tag?' <span class="tag t-seg">'+esc(s.tag)+'</span>':'';
 var remChip=daRicontattare(s)?'<span class="chip c-rem">&#9200; da ricontattare</span>':'';
 var h='<details class="sch '+cls+'" data-id="'+s.id+'"><summary><div class="sumL"><h3>'+esc(s.nome)+' <span class="tag t-'+s.prio+'">'+pt+'</span>'+segChip+'</h3><div class="az">'+esc(s.azienda)+' &middot; '+esc(s.fiera)+'</div></div><div class="sumR">'+remChip+chip(s)+'<span class="chev" aria-hidden="true">&#9662;</span></div></summary><div class="body">';
 if(s.foto&&s.foto.length){h+='<div class="ant">';s.foto.forEach(function(src,i){h+='<figure style="margin:0"><img src="'+src+'" alt="Foto biglietto '+(i+1)+'"></figure>'});h+='</div>'}
-if(s.stato==="email"||s.stato==="inviata"){h+='<div class="es"><h4>Contatto estratto</h4>'+esc(s.nome)+' &middot; '+esc(s.emailc||s.email)+' &middot; '+esc(s.sito)+'</div>'}
+if(s.stato==="email"||s.stato==="inviata"){h+='<div class="es"><h4>Contatto estratto</h4>'+esc(s.nome)+' &middot; '+esc(pulisciEmail(s.emailc||s.email)||s.emailc||s.email)+' &middot; '+esc(s.sito)+'</div>'}
 if(s.colpita){h+='<div class="es cbox"><h4>Mi ha colpita</h4>'+esc(s.colpita)+'</div>'}
 if(s.note){h+='<div class="es nbox"><h4>Note private (solo per me)</h4>'+esc(s.note)+'</div>'}
 if(s.stato==="email"||s.stato==="inviata"){h+='<div class="es"><h4>'+(s.stato==="inviata"?"Email inviata":"Email pronta")+'</h4>';
